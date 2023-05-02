@@ -1,26 +1,75 @@
 import { Component } from "react";
 import "./App.css";
 import Navigation from "./components/Navigation/Navigation";
+import FaceRecognition from "./components/FaceRecognition/FaceRecognition";
 import Logo from "./components/Logo/Logo";
 import ImageLinkForm from "./components/ImageLinkForm/ImageLinkForm";
 import Rank from "./components/Rank/Rank";
 import Particles from "react-tsparticles";
 import { loadFull } from "tsparticles";
 
+const PAT = process.env.REACT_APP_PAT;
+const USER_ID = process.env.REACT_APP_USER_ID;
+const APP_ID = process.env.REACT_APP_APP_ID;
+
+const MODEL_ID = process.env.REACT_APP_MODEL_ID;
+const MODEL_VERSION_ID = process.env.REACT_APP_MODEL_VERSION_ID;
+
+const raw = (image_url) => {
+  return JSON.stringify({
+    user_app_id: {
+      user_id: USER_ID,
+      app_id: APP_ID,
+    },
+    inputs: [
+      {
+        data: {
+          image: {
+            url: image_url,
+          },
+        },
+      },
+    ],
+  });
+};
+
+const requestOptions = (image_url) => {
+  return {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      Authorization: "Key " + PAT,
+    },
+    body: raw(image_url),
+  };
+};
+
 class App extends Component {
   constructor() {
     super();
     this.state = {
       input: "",
+      imageUrl: "",
     };
   }
 
   onInputChange = (event) => {
-    console.log(event.target.value);
+    this.setState({ input: event.target.value });
   };
 
   onButtonSubmit = () => {
-    console.log("click");
+    this.setState({ imageUrl: this.state.input });
+    fetch(
+      "https://api.clarifai.com/v2/models/" +
+        MODEL_ID +
+        "/versions/" +
+        MODEL_VERSION_ID +
+        "/outputs",
+      requestOptions(this.state.input)
+    )
+      .then((response) => response.json())
+      .then((result) => console.log(result.outputs[0]))
+      .catch((error) => console.log("error", error));
   };
 
   render() {
@@ -85,7 +134,7 @@ class App extends Component {
           onInputChange={this.onInputChange}
           onButtonSubmit={this.onButtonSubmit}
         />
-        {/* <FaceRecognition /> */}
+        <FaceRecognition imageUrl={this.state.imageUrl} />
       </div>
     );
   }
