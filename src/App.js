@@ -10,42 +10,6 @@ import Rank from "./components/Rank/Rank";
 import Particles from "react-tsparticles";
 import { loadFull } from "tsparticles";
 
-const PAT = process.env.REACT_APP_PAT;
-const USER_ID = process.env.REACT_APP_USER_ID;
-const APP_ID = process.env.REACT_APP_APP_ID;
-
-const MODEL_ID = process.env.REACT_APP_MODEL_ID;
-const MODEL_VERSION_ID = process.env.REACT_APP_MODEL_VERSION_ID;
-
-const raw = (image_url) => {
-  return JSON.stringify({
-    user_app_id: {
-      user_id: USER_ID,
-      app_id: APP_ID,
-    },
-    inputs: [
-      {
-        data: {
-          image: {
-            url: image_url,
-          },
-        },
-      },
-    ],
-  });
-};
-
-const requestOptions = (image_url) => {
-  return {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      Authorization: "Key " + PAT,
-    },
-    body: raw(image_url),
-  };
-};
-
 const initialState = {
   input: "",
   imageUrl: "",
@@ -102,14 +66,13 @@ class App extends Component {
 
   onButtonSubmit = () => {
     this.setState({ imageUrl: this.state.input });
-    fetch(
-      "https://api.clarifai.com/v2/models/" +
-        MODEL_ID +
-        "/versions/" +
-        MODEL_VERSION_ID +
-        "/outputs",
-      requestOptions(this.state.input)
-    )
+    fetch("http://localhost:3000/imageurl", {
+      method: "post",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        input: this.state.input,
+      }),
+    })
       .then((response) => response.json())
       .then((result) => {
         if (result) {
@@ -125,7 +88,8 @@ class App extends Component {
               this.setState({
                 user: Object.assign(this.state.user, { entries: count }),
               });
-            });
+            })
+            .catch(console.log);
         }
         this.displayFaceBox(this.calculateFaceLocation(result));
       })
