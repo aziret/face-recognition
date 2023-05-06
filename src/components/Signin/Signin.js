@@ -17,7 +17,7 @@ class Signin extends Component {
   };
 
   onSubmitSignIn = () => {
-    fetch("http://localhost:3000/signin", {
+    fetch(process.env.REACT_APP_BACKEND_URL + "/signin", {
       method: "POST",
       mode: "cors",
       headers: {
